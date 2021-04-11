@@ -52,10 +52,10 @@ class PredictionSM
 
 struct Entry
 {
-    uint32_t currentPC;
-    uint32_t targetPC;
+    uint32_t currentPC = 0;
+    uint32_t targetPC = 0;
     PredictionSM prediction;
-    bool busy;
+    bool busy = false;
 };
 
 
