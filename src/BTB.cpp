@@ -11,12 +11,12 @@ void Trace::load_from_file(void)
     if (iFile.is_open())
     {
         std::string line;
-        while (iFile >> line)
+        while (std::getline(iFile, line))
         {
-            if (line.size() == 0)
-                std::cout << "Empty trace loaded!" << '\n';
+            if (line.size() == 0) // Empty line - end of file reached
+                break;
 
-            uint32_t address = std::stoi(line);
+            uint32_t address = std::stoi(line, nullptr, 16);
             traces.push_back(address);
         }
     }
@@ -26,8 +26,8 @@ std::vector<uint32_t> Trace::get_branches(void)
 {
     std::vector<uint32_t> branches;
 
-    for (auto& it = traces.begin(); it != traces.end(); it++)
-        if (*(it + 1) != *it + 4)
+    for (auto it = traces.begin(); it != (traces.end() - 1); it++)
+        if (*(it + 1) != *it + 4) // Next PC == Current PC + 4
             branches.push_back(*it);
         
     return branches;
