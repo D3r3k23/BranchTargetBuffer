@@ -4,15 +4,18 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include <cstdint>
 
 
 const int BTB_SIZE = 1024;
 
 
-class Trace
+struct Trace
 {
-public:
+    std::string fn;
+    std::vector<uint32_t> traces;
+
     Trace(const std::string& fn)
         : fn(fn)
     {
@@ -24,18 +27,11 @@ public:
         return traces.size();
     }
 
-    std::vector<uint32_t> get_branches(void);
-
-private:
     void load_from_file(void);
-
-private:
-    std::string fn;
-    std::vector<uint32_t> traces;
 };
 
 
-int address_to_btb_index(uint32_t address);
+unsigned int address_to_btb_index(uint32_t address);
 
 
 enum Prediction
@@ -52,14 +48,34 @@ class PredictionSM
 
 struct Entry
 {
-    uint32_t currentPC = 0;
+    uint32_t PC = 0;
     uint32_t targetPC = 0;
     PredictionSM prediction;
     bool busy = false;
 };
 
 
-class Stats
+class BTB
+{
+public:
+    BTB(const Trace& trace)
+    {
+        load_from_trace(trace);
+    }
+
+    void load_from_trace(const Trace& trace);
+    void print_to_file(const std::string& fn);
+
+private:
+    void add_new_entry(Entry entry);
+    void update_entry(Entry entry);
+
+private:
+    std::array<Entry, BTB_SIZE> table;
+};
+
+
+struct Stats
 {
     int IC;
     int hits;
