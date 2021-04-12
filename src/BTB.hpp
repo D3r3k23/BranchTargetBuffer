@@ -2,7 +2,7 @@
 #ifndef BTB_HPP
 #define BTB_HPP
 
-#include <string>
+#include <iostream>
 #include <vector>
 #include <array>
 #include <cstdint>
@@ -11,80 +11,89 @@
 const int BTB_SIZE = 1024;
 
 
-struct Trace
-{
-    std::string fn;
-    std::vector<uint32_t> traces;
-
-    Trace(const std::string& fn)
-        : fn(fn)
-    {
-        load_from_file();
-    }
-
-    int size(void) const
-    {
-        return traces.size();
-    }
-
-    void load_from_file(void);
-};
-
+std::vector<uint32_t> load_trace_file(const char* fn);
 
 unsigned int address_to_btb_index(uint32_t address);
 
 
-enum Prediction
+enum State : uint8_t
 {
+    S0 = 0b00,
+    S1 = 0b01,
+    S2 = 0b10,
+    S3 = 0b11
+};
 
+class Class_SM
+{
+public:
+    Class_SM() : state(S0) { }
+
+    bool taken(void) const
+        { return state == S0 || state == S1; }
+
+    void next_state(bool taken);
+
+private:
+    State state;
+};
+
+class SM_B
+{
+public:
+    SM_B() : state(S1) { }
+
+    bool taken(void) const
+        { return state == S0 || state == S1; }
+
+    void next_state(bool taken);
+
+private:
+    State state;
 };
 
 
-class PredictionSM
-{
-
-};
-
-
+template <typename SM>
 struct Entry
 {
     uint32_t PC = 0;
     uint32_t targetPC = 0;
-    PredictionSM prediction;
+    SM prediction;
     bool busy = false;
 };
 
-
-class BTB
+struct Stats
 {
-public:
-    BTB(const Trace& trace)
-    {
-        load_from_trace(trace);
-    }
+    int IC = 0;
+    int hits = 0;
+    int misses = 0;
+    int right = 0;
+    int wrong = 0;
+    int taken = 0;
+    int collisions = 0;
+    int wrong_addr = 0;
 
-    void load_from_trace(const Trace& trace);
-    void print_to_file(const std::string& fn);
-
-private:
-    void add_new_entry(Entry entry);
-    void update_entry(Entry entry);
-
-private:
-    std::array<Entry, BTB_SIZE> table;
+    friend std::ostream& operator<<(std::ostream& os, const Stats& stats);
 };
 
 
-struct Stats
+template <typename SM>
+class BTB
 {
-    int IC;
-    int hits;
-    int misses;
-    int right;
-    int wrong;
-    int taken;
-    int collisions;
-    int wrong_addr;
+public:
+    void process_trace(const std::vector<uint32_t>& trace);
+
+    void print_to_file(const char* fn) const;
+
+    void print_stats(void) const
+        { std::cout << stats; }
+
+private:
+    void update_entry(Entry<SM> entry, unsigned int index);
+
+private:
+    std::array<Entry<SM>, BTB_SIZE> table;
+    Stats stats;
 };
 
 
