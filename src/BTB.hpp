@@ -110,14 +110,14 @@ struct Stats
 
 std::ostream& operator<<(std::ostream& os, const Stats& stats)
 {
-    os << "Instruction count: " << stats.IC         << '\n';
-    os << "Hits:              " << stats.hits       << '\n';
-    os << "Misses:            " << stats.misses     << '\n';
-    os << "Right:             " << stats.right      << '\n';
-    os << "Wrong:             " << stats.wrong      << '\n';
-    os << "Taken:             " << stats.taken      << '\n';
-    os << "Collisions:        " << stats.collisions << '\n';
-    os << "Wrong address:     " << stats.wrong_addr << '\n';
+    os << "IC:         " << stats.IC         << '\n';
+    os << "Hits:       " << stats.hits       << '\n';
+    os << "Misses:     " << stats.misses     << '\n';
+    os << "Right:      " << stats.right      << '\n';
+    os << "Wrong:      " << stats.wrong      << '\n';
+    os << "Taken:      " << stats.taken      << '\n';
+    os << "Collisions: " << stats.collisions << '\n';
+    os << "Wrong addr: " << stats.wrong_addr << '\n';
     return os;
 }
 
@@ -125,7 +125,7 @@ std::ostream& operator<<(std::ostream& os, const Stats& stats)
 template <typename SM>
 class BTB
 {
-public:
+private:
     struct Entry
     {
         uint32_t PC = 0;
@@ -134,6 +134,10 @@ public:
         bool busy = false;
     };
 
+    std::array<Entry, BTB_SIZE> table;
+    Stats stats;
+    
+public:
     void process_trace(const std::vector<uint32_t>& trace)
     {
         auto currAddress = trace.begin();
@@ -216,10 +220,6 @@ private:
             targetEntry.busy = true;
         }
     }
-
-private:
-    std::array<Entry, BTB_SIZE> table;
-    Stats stats;
 };
 
 
