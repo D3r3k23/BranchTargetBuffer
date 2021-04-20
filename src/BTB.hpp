@@ -13,8 +13,7 @@
 
 
 const int BTB_SIZE = 1024;
-
-const bool PRINT_INACTIVE_ENTRIES = true;
+const bool PRINT_INACTIVE_ENTRIES = false;
 
 
 std::vector<uint32_t> load_trace_file(const char* fn)
@@ -183,9 +182,9 @@ public:
     void process_trace(const std::vector<uint32_t>& trace)
     {
         auto address = trace.begin();
-        for ( ; address != trace.end() - 1; address++)
+        while (address != trace.end() - 1;)
         {
-            process_instruction(*address, *(address + 1));
+            process_instruction(*address, *(++address));
         }
         process_last_instruction(*address);
 
@@ -256,9 +255,7 @@ public:
     {
         if (std::ofstream oFile(fn, std::ios::out); oFile.is_open())
         {
-            oFile << "Index, PC, TargetPC, State Machine, Prediction";
-            if (PRINT_INACTIVE_ENTRIES)
-                oFile << ", Busy";
+            oFile << "Index, PC, TargetPC, State Machine, Prediction" << ", Busy";
             oFile << '\n';
 
             oFile << std::uppercase << std::boolalpha;
@@ -267,10 +264,11 @@ public:
             {
                 if (entry.busy || PRINT_INACTIVE_ENTRIES)
                 {
-                    oFile << std::setw(4) << index << ", " << std::setw(0);
+                    oFile << std::setw(4) << index << ", ";
 
                     oFile << std::hex << std::setw(8) << std::setfill('0') << entry.PC << ", ";
                     oFile << std::hex << std::setw(8) << std::setfill('0') << entry.targetPC << ", ";
+
                     oFile << std::setfill(' ') << std::setw(0) << std::dec;
 
                     oFile << entry.prediction.get_state() << ", ";
