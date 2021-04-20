@@ -226,7 +226,6 @@ public:
             {
                 stats.wrong++;
             }
-
             entry.prediction.go_to_next_state(taken);
         }
         else if (taken) // BTB miss
@@ -245,7 +244,7 @@ public:
         stats.IC++;
 
         unsigned int index = address_to_index(PC);
-        Entry entry = table[index];
+        const Entry& entry = table[index];
 
         if (entry.busy && (entry.PC == PC))
             stats.hits++;
@@ -255,8 +254,7 @@ public:
     {
         if (std::ofstream oFile(fn, std::ios::out); oFile.is_open())
         {
-            oFile << "Index, PC, TargetPC, State Machine, Prediction" << ", Busy";
-            oFile << '\n';
+            oFile << "Index, PC, TargetPC, State Machine, Prediction, Busy" << '\n';
 
             oFile << std::uppercase << std::boolalpha;
 
@@ -269,7 +267,7 @@ public:
                     oFile << std::hex << std::setw(8) << std::setfill('0') << entry.PC << ", ";
                     oFile << std::hex << std::setw(8) << std::setfill('0') << entry.targetPC << ", ";
 
-                    oFile << std::setfill(' ') << std::setw(0) << std::dec;
+                    oFile << std::dec << std::setw(0) << std::setfill(' ');
 
                     oFile << entry.prediction.get_state() << ", ";
                     oFile << (entry.prediction.taken() ? "Taken" : "NT   ") << ", ";
