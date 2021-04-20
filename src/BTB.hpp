@@ -5,12 +5,16 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <string>
 #include <vector>
 #include <array>
+#include <bitset>
 #include <cstdint>
 
 
 const int BTB_SIZE = 1024;
+
+const bool PRINT_INACTIVE_ENTRIES = true;
 
 
 std::vector<uint32_t> load_trace_file(const char* fn)
@@ -18,7 +22,9 @@ std::vector<uint32_t> load_trace_file(const char* fn)
     std::vector<uint32_t> trace;
     std::ifstream iFile(fn, std::ios::in);
 
-    if (iFile.is_open())
+    if (!iFile.is_open())
+        std::cout << "Could not open file: " << fn << '\n';
+    else
     {
         std::string line;
         while (std::getline(iFile, line))
@@ -26,20 +32,17 @@ std::vector<uint32_t> load_trace_file(const char* fn)
             if (line.size() == 0) // Empty line - end of file reached
                 break;
 
-            uint32_t address = std::stoi(line, nullptr, 16);
+            uint32_t address = std::stoi(line, nullptr, 16); // Address is in hex
             trace.push_back(address);
         }
+        std::cout << "Traces from: " << fn << " loaded." << '\n';
+        std::cout << "Number of traces: " << trace.size() << '\n';
     }
     return trace;
 }
 
-unsigned int address_to_btb_index(uint32_t address)
-{
-    return ((address >> 2) & 0x3FF);
-}
 
-
-enum State : uint8_t
+enum State
 {
     S0 = 0b00,
     S1 = 0b01,
@@ -47,50 +50,73 @@ enum State : uint8_t
     S3 = 0b11
 };
 
+std::ostream& operator<<(std::ostream& os, State state)
+{
+    os << std::bitset<2>(static_cast<unsigned int>(state));
+    return os;
+}
+
+
 class Class_SM
 {
+private:
+    State state;
+
 public:
-    Class_SM() : state(S0) { }
+    Class_SM()
+        { reset(); }
+
+    State reset(void)
+        { state = S0; }
 
     bool taken(void) const
-        { return state == S0 || state == S1; }
+        { return (state == S0) || (state == S1); }
 
-    void next_state(bool taken)
+    State go_to_next_state(bool taken)
     {
         switch(state)
         {
-        case S0 : state = taken ? S0 : S1; break;
-        case S1 : state = taken ? S0 : S2; break;
-        case S2 : state = taken ? S1 : S3; break;
-        case S3 : state = taken ? S2 : S3; break;
+        case S0: state = taken ? S0 : S1;  break;
+        case S1: state = taken ? S0 : S2;  break;
+        case S2: state = taken ? S1 : S3;  break;
+        case S3: state = taken ? S2 : S3;  break;
         }
+        return state;
     }
 
-private:
-    State state;
+    State get_state(void) const
+        { return state; }
 };
 
 class SM_B
 {
+private:
+    State state;
+
 public:
-    SM_B() : state(S1) { }
+    SM_B()
+        { reset(); }
+
+    State reset(void)
+        { state = S0; }
 
     bool taken(void) const
-        { return state == S0 || state == S1; }
+        { return (state == S0) || (state == S1); }
 
-    void next_state(bool taken)
+    State go_to_next_state(bool taken)
     {
         switch(state)
         {
-        case S0 : state = taken ? S0 : S1; break;
-        case S1 : state = taken ? S0 : S2; break;
-        case S2 : state = taken ? S0 : S3; break;
-        case S3 : state = taken ? S2 : S3; break;
+        case S0: state = taken ? S0 : S1;  break;
+        case S1: state = taken ? S0 : S2;  break;
+        case S2: state = taken ? S0 : S3;  break;
+        case S3: state = taken ? S2 : S3;  break;
         }
+        return state;
     }
 
-private:
-    State state;
+    State get_state(void) const
+        { return state; }
 };
 
 
@@ -118,6 +144,15 @@ std::ostream& operator<<(std::ostream& os, const Stats& stats)
     os << "Taken:      " << stats.taken      << '\n';
     os << "Collisions: " << stats.collisions << '\n';
     os << "Wrong addr: " << stats.wrong_addr << '\n';
+
+    os << "Hit rate:       " << static_cast<float>(stats.hits)
+                             / (static_cast<float>(stats.hits) + static_cast<float>(stats.misses))
+                             << "%" << '\n';
+    os << "Accuracy:       " << static_cast<float>(stats.right) / static_cast<float>(stats.hits)
+                             << "%" << '\n';
+    os << "Incorrect Addr: " << static_cast<float>(stats.wrong_addr) / static_cast<float>(stats.wrong)
+                             << "%" << '\n';
+
     return os;
 }
 
@@ -128,97 +163,123 @@ class BTB
 private:
     struct Entry
     {
-        uint32_t PC = 0;
-        uint32_t targetPC = 0;
+        uint32_t PC;
+        uint32_t targetPC;
         SM prediction;
-        bool busy = false;
+        bool busy;
     };
 
     std::array<Entry, BTB_SIZE> table;
     Stats stats;
     
 public:
+    BTB()
+    {
+        for (auto& entry : table)
+        {
+            entry.busy = false;
+        }
+    }
+
     void process_trace(const std::vector<uint32_t>& trace)
     {
-        auto currAddress = trace.begin();
-        auto nextAddress = currAddress + 1;
-
-        while (nextAddress != trace.end())
+        for (auto address = trace.begin(); (address + 1) != trace.end(); address++)
         {
-            stats.IC++;
+            process_instruction(*address, *(address + 1));
+        }
+    }
 
-            if (*nextAddress != *currAddress + 4) // Is branch; Next PC == Current PC + 4
+    void process_instruction(uint32_t PC, uint32_t nextPC)
+    {
+        stats.IC++;
+
+        unsigned int index = address_to_index(PC);
+        Entry& entry = table[index];
+
+        bool taken = (nextPC != PC + 4);
+        if (taken)
+            stats.taken++;
+
+        if (entry.busy && (entry.PC == PC)) // BTB hit
+        {
+            stats.hits++;
+
+            if (entry.prediction.taken() == taken) // Right prediction
             {
-                Entry entry = { *currAddress, *nextAddress, SM(), true };
-                unsigned int entryIndex = address_to_btb_index(*currAddress);
+                if (taken && (nextPC != entry.targetPC)) // Wrong address
+                {
+                    stats.wrong++;
+                    stats.wrong_addr++;
 
-                if (entryIndex >= BTB_SIZE)
-                    std::cout << "Incorrect index calculated, entry skipped." << '\n';
+                    entry.targetPC = nextPC;
+                }
                 else
                 {
-                    table[entryIndex] = entry;
-                    // update_entry(entry, entryIndex);
+                    stats.right++;
                 }
             }
-            currAddress++;
-            nextAddress++;
+            else // Wrong prediction
+            {
+                stats.wrong++;
+            }
+
+            entry.prediction.go_to_next_state();
         }
-        stats.IC++;
+        else // BTB miss
+        {
+            stats.misses++;
+
+            if (taken) // Add to BTB
+            {
+                if (entry.busy) // Collision
+                    stats.collisions++;
+
+                entry.PC = PC;
+                entry.targetPC = nextPC;
+                entry.prediction.reset();
+            }
+        }
+        std::cout << stats;
     }
 
     void print_to_file(const char* fn) const
     {
         std::ofstream oFile(fn, std::ios::out);
-        if (oFile.is_open())
+        if (!oFile.is_open())
+            std::cout << "Could not open: " << fn << '\n';
+        else
         {
-            oFile << "Index, PC, TargetPC, " << '\n'; // Prediction" << '\n';
+            oFile << "Index, PC, TargetPC, State Machine, Prediction";
+            if (PRINT_INACTIVE_ENTRIES)
+                oFile << ", Busy";
+            oFile << '\n';
+
+            oFile << std::setfill('0') << std::uppercase << std::boolalpha;
 
             for (unsigned int index = 0; const auto& entry : table)
             {
-                if (entry.busy)
+                if (entry.busy || PRINT_INACTIVE_ENTRIES)
                 {
-                    oFile << std::setw(4) << index << std::setw(0) << ", ";
+                    oFile << index << ", ";
 
-                    oFile << std::hex << std::uppercase << entry.PC << ", ";
-                    oFile << entry.targetPC << std::nouppercase << std::dec << '\n'; // ", ";
+                    oFile << std::hex << std::setw(8);
+                    oFile << entry.PC << ", " << entry.targetPC << ", ";
+                    oFile << std::setw(0) << std::dec;
 
-                    // oFile << entry.prediction << '\n';
+                    oFile << entry.prediction.get_state() << ", ";
+                    oFile << (entry.prediction.taken() ? "Taken" : "NT   ") << ", ";
+                    oFile << entry.busy;
                 }
                 index++;
             }
         }
+        std::cout << "BTB printed to: " << fn << '\n';
     }
 
-    void print_stats(void) const
-        { std::cout << stats; }
-
 private:
-    void update_entry(Entry entry, unsigned int index)
+    static unsigned int address_to_index(uint32_t address)
     {
-        auto& targetEntry = table[index];
-
-        if (targetEntry.busy)
-        {
-            if (entry.PC != targetEntry)
-            {
-                stats.collisions++;
-                stats.misses++;
-                targetEntry = entry;
-            }
-            else
-            {
-                stats.hits++;
-                if (entry.targetPC == targetEntry.targetPC)
-                {
-                    stats.right++;
-                }
-            }
-        }
-        else
-        {
-            stats.misses++;
-            targetEntry.busy = true;
-        }
+        return ((address >> 2) & 0x3FF);
     }
 };
 
