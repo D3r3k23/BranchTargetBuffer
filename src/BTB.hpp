@@ -149,7 +149,7 @@ std::ostream& operator<<(std::ostream& os, const Stats& stats)
                              << "%" << '\n';
     os << "Accuracy:       " << static_cast<float>(stats.right) / static_cast<float>(stats.hits)
                              << "%" << '\n';
-    os << "Incorrect Addr: " << static_cast<float>(stats.wrong_addr) / static_cast<float>(stats.wrong)
+    os << "Incorrect addr: " << static_cast<float>(stats.wrong_addr) / static_cast<float>(stats.wrong)
                              << "%" << '\n';
     return os;
 }
@@ -182,9 +182,10 @@ public:
     void process_trace(const std::vector<uint32_t>& trace)
     {
         auto address = trace.begin();
-        while (address != trace.end() - 1;)
+        while (address != trace.end() - 1)
         {
-            process_instruction(*address, *(++address));
+            process_instruction(*address, *(address + 1));
+            address++;
         }
         process_last_instruction(*address);
 
