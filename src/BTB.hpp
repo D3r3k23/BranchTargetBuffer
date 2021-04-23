@@ -66,7 +66,7 @@ public:
         { reset(); }
 
     State reset(void)
-        { return state = S0; }
+        { return (state = S0); }
 
     bool taken(void) const
         { return (state == S0) || (state == S1); }
@@ -97,7 +97,7 @@ public:
         { reset(); }
 
     State reset(void)
-        { return state = S0; }
+        { return (state = S0); }
 
     bool taken(void) const
         { return (state == S0) || (state == S1); }
