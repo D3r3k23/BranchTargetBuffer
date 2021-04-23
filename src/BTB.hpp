@@ -130,7 +130,7 @@ struct Stats
     int collisions = 0;
     int wrong_addr = 0;
 
-    friend std::ostream& operator<<(std::ostream& os, const Stats& stats);
+    // friend std::ostream& operator<<(std::ostream& os, const Stats& stats);
 };
 
 std::ostream& operator<<(std::ostream& os, const Stats& stats)
