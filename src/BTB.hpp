@@ -62,9 +62,6 @@ private:
     State state;
 
 public:
-    Class_SM()
-        { reset(); }
-
     State reset(void)
         { return (state = S0); }
 
@@ -93,9 +90,6 @@ private:
     State state;
 
 public:
-    SM_B()
-        { reset(); }
-
     State reset(void)
         { return (state = S0); }
 
@@ -162,7 +156,7 @@ private:
     struct Entry
     {
         uint32_t PC = 0;
-        uint32_t targetPC = 0;
+        uint32_t target = 0;
         SM prediction;
         bool busy;
     };
@@ -171,7 +165,7 @@ private:
     Stats stats;
     
 public:
-    BTB()
+    BTB(void)
     {
         for (auto& entry : table)
         {
@@ -193,69 +187,28 @@ public:
         std::cout << stats;
         std::cout << '\n';
     }
-
-    void process_instruction(uint32_t PC, uint32_t nextPC)
+    
+    void add_entry(unsigned int index, uint32_t PC, uint32_t nextPC)
     {
-        stats.IC++;
-
-        unsigned int index = address_to_index(PC);
-        Entry& entry = table[index];
-
-        bool taken = (nextPC != PC + 4);
-        if (taken)
-            stats.taken++;
-
-        if (entry.busy && (entry.PC == PC)) // BTB hit
+        if (index < BTB_SIZE)
         {
-            stats.hits++;
-
-            if (entry.prediction.taken() == taken) // Right prediction
+            Entry& entry = table[index];
+            
+            if (!table.busy)
             {
-                if (taken && (nextPC != entry.targetPC)) // Wrong address
-                {
-                    stats.wrong++;
-                    stats.wrong_addr++;
-
-                    entry.targetPC = nextPC;
-                }
-                else
-                {
-                    stats.right++;
-                }
+                entry.PC = PC;
+                entry.target = nextPC;
+                entry.prediction.reset();
+                entry.busy = true;
             }
-            else // Wrong prediction
-            {
-                stats.wrong++;
-            }
-            entry.prediction.go_to_next_state(taken);
         }
-        else if (taken) // BTB miss
-        {
-            stats.misses++;
-
-            if (entry.busy) // Collision
-                stats.collisions++;
-
-            entry = { PC, nextPC, SM(), true }; // Add to BTB
-        }
-    }
-
-    void process_last_instruction(uint32_t PC)
-    {
-        stats.IC++;
-
-        unsigned int index = address_to_index(PC);
-        const Entry& entry = table[index];
-
-        if (entry.busy && (entry.PC == PC))
-            stats.hits++;
     }
 
     void print_to_file(const char* fn) const
     {
         if (std::ofstream oFile(fn, std::ios::out); oFile.is_open())
         {
-            oFile << "Index, PC, TargetPC, State Machine, Prediction, Busy" << '\n';
+            oFile << "Index, PC, Target, State Machine, Prediction, Busy" << '\n';
 
             oFile << std::uppercase << std::boolalpha;
 
@@ -266,7 +219,7 @@ public:
                     oFile << std::setw(4) << index << ", ";
 
                     oFile << std::hex << std::setw(8) << std::setfill('0') << entry.PC << ", ";
-                    oFile << std::hex << std::setw(8) << std::setfill('0') << entry.targetPC << ", ";
+                    oFile << std::hex << std::setw(8) << std::setfill('0') << entry.target << ", ";
 
                     oFile << std::dec << std::setw(0) << std::setfill(' ');
 
@@ -287,6 +240,60 @@ public:
     }
 
 private:
+    void process_instruction(uint32_t PC, uint32_t nextPC)
+    {
+        stats.IC++;
+
+        unsigned int index = address_to_index(PC);
+        Entry& entry = table[index];
+
+        bool taken = (nextPC != PC + 4);
+        if (taken)
+            stats.taken++;
+
+        if (entry.busy && (entry.PC == PC)) // BTB hit
+        {
+            stats.hits++;
+
+            if (entry.prediction.taken() == taken) // Right prediction
+            {
+                if (taken && (nextPC != entry.target)) // Wrong address
+                {
+                    stats.wrong++;
+                    stats.wrong_addr++;
+
+                    entry.target = nextPC;
+                }
+                else
+                    stats.right++;
+            }
+            else // Wrong prediction
+                stats.wrong++;
+            
+            entry.prediction.go_to_next_state(taken);
+        }
+        else if (taken) // BTB miss
+        {
+            stats.misses++;
+
+            if (entry.busy) // Collision
+                stats.collisions++;
+
+            add_entry(index, PC, nextPC);
+        }
+    }
+
+    void process_last_instruction(uint32_t PC)
+    {
+        stats.IC++;
+
+        unsigned int index = address_to_index(PC);
+        const Entry& entry = table[index];
+
+        if (entry.busy && (entry.PC == PC))
+            stats.hits++;
+    }
+    
     static unsigned int address_to_index(uint32_t address)
     {
         return ((address >> 2) & 0x3FF);
