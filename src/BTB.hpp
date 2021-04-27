@@ -2,13 +2,13 @@
 #ifndef BTB_HPP
 #define BTB_HPP
 
+#include "branch_target_buffer.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <string>
 #include <vector>
 #include <array>
-#include <bitset>
 #include <cstdint>
 
 
@@ -16,140 +16,7 @@ const int BTB_SIZE = 1024;
 const bool PRINT_INACTIVE_ENTRIES = false;
 
 
-std::vector<uint32_t> load_trace_file(const char* fn)
-{
-    std::vector<uint32_t> trace;
-
-    if (std::ifstream iFile(fn, std::ios::in); iFile.is_open())
-    {
-        std::string line;
-        while (std::getline(iFile, line))
-        {
-            if (line.size() == 0) // Empty line - end of file reached
-                break;
-
-            uint32_t address = std::stoi(line, nullptr, 16); // Address is in hex
-            trace.push_back(address);
-        }
-        std::cout << "Traces from: " << fn << " loaded." << '\n';
-        std::cout << "Number of traces: " << trace.size() << '\n';
-        std::cout << '\n';
-    }
-    else
-        std::cout << "Could not open file: " << fn << '\n' << '\n';
-
-    return trace;
-}
-
-
-enum State
-{
-    S0 = 0b00,
-    S1 = 0b01,
-    S2 = 0b10,
-    S3 = 0b11
-};
-
-std::ostream& operator<<(std::ostream& os, State state)
-{
-    return os << std::bitset<2>(static_cast<unsigned int>(state));
-}
-
-
-class Class_SM
-{
-private:
-    State state;
-
-public:
-    State reset(void)
-        { return (state = S0); }
-
-    bool taken(void) const
-        { return (state == S0) || (state == S1); }
-
-    State go_to_next_state(bool taken)
-    {
-        switch(state)
-        {
-        case S0: state = taken ? S0 : S1;  break;
-        case S1: state = taken ? S0 : S2;  break;
-        case S2: state = taken ? S1 : S3;  break;
-        case S3: state = taken ? S2 : S3;  break;
-        }
-        return state;
-    }
-
-    State get_state(void) const
-        { return state; }
-};
-
-class SM_B
-{
-private:
-    State state;
-
-public:
-    State reset(void)
-        { return (state = S0); }
-
-    bool taken(void) const
-        { return (state == S0) || (state == S1); }
-
-    State go_to_next_state(bool taken)
-    {
-        switch(state)
-        {
-        case S0: state = taken ? S0 : S1;  break;
-        case S1: state = taken ? S0 : S2;  break;
-        case S2: state = taken ? S0 : S3;  break;
-        case S3: state = taken ? S2 : S3;  break;
-        }
-        return state;
-    }
-
-    State get_state(void) const
-        { return state; }
-};
-
-
-struct Stats
-{
-    int IC = 0;
-    int hits = 0;
-    int misses = 0;
-    int right = 0;
-    int wrong = 0;
-    int taken = 0;
-    int collisions = 0;
-    int wrong_addr = 0;
-
-    // friend std::ostream& operator<<(std::ostream& os, const Stats& stats);
-};
-
-std::ostream& operator<<(std::ostream& os, const Stats& stats)
-{
-    os << "IC:         " << stats.IC         << '\n';
-    os << "Hits:       " << stats.hits       << '\n';
-    os << "Misses:     " << stats.misses     << '\n';
-    os << "Right:      " << stats.right      << '\n';
-    os << "Wrong:      " << stats.wrong      << '\n';
-    os << "Taken:      " << stats.taken      << '\n';
-    os << "Collisions: " << stats.collisions << '\n';
-    os << "Wrong addr: " << stats.wrong_addr << '\n';
-    os << '\n';
-    os << "Hit rate:       " << static_cast<float>(stats.hits)
-                             / (static_cast<float>(stats.hits) + static_cast<float>(stats.misses))
-                             << "%" << '\n';
-    os << "Accuracy:       " << static_cast<float>(stats.right) / static_cast<float>(stats.hits)
-                             << "%" << '\n';
-    os << "Incorrect addr: " << static_cast<float>(stats.wrong_addr) / static_cast<float>(stats.wrong)
-                             << "%" << '\n';
-    return os;
-}
-
-
-template <typename SM>
+template <typename SM> // Which prediction state machine to use: Class_SM, SM_B
 class BTB
 {
 private:
@@ -194,7 +61,7 @@ public:
         {
             Entry& entry = table[index];
             
-            if (!table.busy)
+            if (!entry.busy)
             {
                 entry.PC = PC;
                 entry.target = nextPC;

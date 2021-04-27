@@ -8,4 +8,5 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(BranchTargetBuffer
     src/main.cpp
+    src/branch_target_buffer.cpp
 )
