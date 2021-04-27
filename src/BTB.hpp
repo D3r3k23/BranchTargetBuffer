@@ -37,21 +37,6 @@ public:
         for (auto& entry : table)
             entry.busy = false;
     }
-
-    void process_trace(const std::vector<uint32_t>& trace)
-    {
-        auto address = trace.begin();
-        while (address != trace.end() - 1)
-        {
-            process_instruction(*address, *(address + 1));
-            address++;
-        }
-        process_last_instruction(*address);
-
-        std::cout << "Stats:" << '\n' << '\n';
-        std::cout << stats;
-        std::cout << '\n';
-    }
     
     void add_entry(unsigned int index, uint32_t PC, uint32_t nextPC)
     {
@@ -67,6 +52,21 @@ public:
                 entry.busy = true;
             }
         }
+    }
+
+    void process_trace(const std::vector<uint32_t>& trace)
+    {
+        auto address = trace.begin();
+        while (address != trace.end() - 1)
+        {
+            process_instruction(*address, *(address + 1));
+            address++;
+        }
+        process_last_instruction(*address);
+
+        std::cout << "Stats:" << '\n' << '\n';
+        std::cout << stats;
+        std::cout << '\n';
     }
 
     void print_to_file(const char* fn) const
@@ -107,6 +107,11 @@ public:
     }
 
 private:
+    static unsigned int address_to_index(uint32_t address)
+    {
+        return ((address >> 2) & 0x3FF);
+    }
+    
     void process_instruction(uint32_t PC, uint32_t nextPC)
     {
         stats.IC++;
@@ -144,7 +149,10 @@ private:
             stats.misses++;
 
             if (entry.busy) // Collision
+            {
                 stats.collisions++;
+                entry.busy = false;
+            }
 
             add_entry(index, PC, nextPC);
         }
@@ -159,11 +167,6 @@ private:
 
         if (entry.busy && (entry.PC == PC))
             stats.hits++;
-    }
-    
-    static unsigned int address_to_index(uint32_t address)
-    {
-        return ((address >> 2) & 0x3FF);
     }
 };
 
