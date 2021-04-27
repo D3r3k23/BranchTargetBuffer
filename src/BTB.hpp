@@ -37,6 +37,11 @@ public:
         for (auto& entry : table)
             entry.busy = false;
     }
+
+    static unsigned int address_to_index(uint32_t address)
+    {
+        return ((address >> 2) & 0x3FF);
+    }
     
     void add_entry(unsigned int index, uint32_t PC, uint32_t nextPC)
     {
@@ -67,49 +72,6 @@ public:
         std::cout << "Stats:" << '\n' << '\n';
         std::cout << stats;
         std::cout << '\n';
-    }
-
-    void print_to_file(const char* fn) const
-    {
-        if (std::ofstream oFile(fn, std::ios::out); oFile.is_open())
-        {
-            oFile << "Index, PC, Target, State Machine, Prediction, Busy" << '\n';
-
-            oFile << std::uppercase << std::boolalpha;
-
-            for (unsigned int index = 0; const auto& entry : table)
-            {
-                if (entry.busy || PRINT_INACTIVE_ENTRIES)
-                {
-                    oFile << std::dec << std::setw(4) << std::setfill(' '); // << index << ", ";
-                    oFile << index << ", ";
-
-                    // oFile << std::hex << std::setw(8) << std::setfill('0') << entry.PC << ", ";
-                    // oFile << std::hex << std::setw(8) << std::setfill('0') << entry.target << ", ";
-                    
-                    oFile << std::hex << std::setw(8) << std::setfill('0');
-                    oFile << entry.PC << ", ";
-                    oFile << entry.target << ", ";
-
-                    oFile << entry.prediction.get_state() << ", ";
-                    oFile << (entry.prediction.taken() ? "Taken" : "NT   ") << ", ";
-                    oFile << entry.busy;
-
-                    oFile << '\n';
-                }
-                index++;
-            }
-
-            std::cout << "BTB contents printed to: " << fn << '\n';
-        }
-        else
-            std::cout << "Could not open: " << fn << '\n';
-    }
-
-private:
-    static unsigned int address_to_index(uint32_t address)
-    {
-        return ((address >> 2) & 0x3FF);
     }
     
     void process_instruction(uint32_t PC, uint32_t nextPC)
@@ -168,7 +130,47 @@ private:
         if (entry.busy && (entry.PC == PC))
             stats.hits++;
     }
+
+    void print_to_file(const char* fn) const
+    {
+        if (std::ofstream oFile(fn, std::ios::out); oFile.is_open())
+        {
+            oFile << "Index, PC, Target, State Machine, Prediction, Busy" << '\n';
+
+            oFile << std::uppercase << std::boolalpha;
+
+            for (unsigned int index = 0; const auto& entry : table)
+            {
+                if (entry.busy || PRINT_INACTIVE_ENTRIES)
+                {
+                    oFile << std::dec << std::setw(4) << std::setfill(' '); // << index << ", ";
+                    oFile << index << ", ";
+
+                    // oFile << std::hex << std::setw(8) << std::setfill('0') << entry.PC << ", ";
+                    // oFile << std::hex << std::setw(8) << std::setfill('0') << entry.target << ", ";
+                    
+                    oFile << std::hex << std::setw(8) << std::setfill('0');
+                    oFile << entry.PC << ", ";
+                    oFile << entry.target << ", ";
+
+                    oFile << entry.prediction.get_state() << ", ";
+                    oFile << (entry.prediction.taken() ? "Taken" : "NT   ") << ", ";
+                    oFile << entry.busy;
+
+                    oFile << '\n';
+                }
+                index++;
+            }
+
+            std::cout << "BTB contents printed to: " << fn << '\n';
+        }
+        else
+            std::cout << "Could not open: " << fn << '\n';
+    }
 };
+
+
+#include "BTB.cpp"
 
 
 #endif // BTB_HPP
