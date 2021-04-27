@@ -83,12 +83,15 @@ public:
             {
                 if (entry.busy || PRINT_INACTIVE_ENTRIES)
                 {
-                    oFile << std::setw(4) << index << ", ";
+                    oFile << std::dec << std::setw(4) << std::setfill(' '); // << index << ", ";
+                    oFile << index << ", ";
 
-                    oFile << std::hex << std::setw(8) << std::setfill('0') << entry.PC << ", ";
-                    oFile << std::hex << std::setw(8) << std::setfill('0') << entry.target << ", ";
-
-                    oFile << std::dec << std::setw(0) << std::setfill(' ');
+                    // oFile << std::hex << std::setw(8) << std::setfill('0') << entry.PC << ", ";
+                    // oFile << std::hex << std::setw(8) << std::setfill('0') << entry.target << ", ";
+                    
+                    oFile << std::hex << std::setw(8) << std::setfill('0');
+                    oFile << entry.PC << ", ";
+                    oFile << entry.target << ", ";
 
                     oFile << entry.prediction.get_state() << ", ";
                     oFile << (entry.prediction.taken() ? "Taken" : "NT   ") << ", ";
@@ -98,7 +101,6 @@ public:
                 }
                 index++;
             }
-            oFile << std::nouppercase << std::noboolalpha;
 
             std::cout << "BTB contents printed to: " << fn << '\n';
         }
