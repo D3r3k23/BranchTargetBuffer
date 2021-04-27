@@ -35,9 +35,7 @@ public:
     BTB(void)
     {
         for (auto& entry : table)
-        {
             entry.busy = false;
-        }
     }
 
     void process_trace(const std::vector<uint32_t>& trace)
