@@ -2,12 +2,13 @@
 #ifndef BRANCH_TARGET_BUFFER_HPP
 #define BRANCH_TARGET_BUFFER_HPP
 
+#include <string>
 #include <vector>
 #include <iostream>
 #include <cstdint>
 
 
-std::vector<uint32_t> load_trace_file(const char* fn);
+std::vector<uint32_t> load_trace_file(const std::string& fn);
 
 
 enum State
@@ -47,6 +48,9 @@ public:
 
     State get_state(void) const
         { return state; }
+    
+    static std::string string(void)
+        { return "Class_SM"; }
 };
 
 class SM_B
@@ -75,6 +79,9 @@ public:
 
     State get_state(void) const
         { return state; }
+    
+    static std::string string(void)
+        { return "SM_B"; }
 };
 
 

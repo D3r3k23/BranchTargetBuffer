@@ -1,6 +1,8 @@
 
 #include "BTB.hpp"
 
+#include <filesystem>
+
 
 template <typename SM>
 BTB<SM>::BTB(void)
@@ -108,12 +110,12 @@ void BTB<SM>::process_last_instruction(uint32_t PC)
 }
 
 template <typename SM>
-void BTB<SM>::print_to_file(const char* fn) const
+void BTB<SM>::print_to_file(const std::string& fn) const
 {
-    if (std::ofstream oFile(fn, std::ios::out); oFile.is_open())
+    using path = std::filesystem::path;
+    if (std::ofstream oFile(path("output") / path(fn), std::ios::out); oFile.is_open())
     {
         oFile << "Index, PC, Target, State Machine, Prediction, Busy" << '\n';
-
         oFile << std::uppercase << std::boolalpha;
 
         for (unsigned int index = 0; const auto& entry : table)
@@ -133,7 +135,6 @@ void BTB<SM>::print_to_file(const char* fn) const
             }
             index++;
         }
-
         std::cout << "BTB contents printed to: " << fn << '\n';
     }
     else

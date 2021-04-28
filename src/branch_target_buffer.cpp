@@ -5,13 +5,15 @@
 #include <fstream>
 #include <iomanip>
 #include <bitset>
+#include <filesystem>
 
 
-std::vector<uint32_t> load_trace_file(const char* fn)
+std::vector<uint32_t> load_trace_file(const std::string& fn)
 {
     std::vector<uint32_t> trace;
 
-    if (std::ifstream iFile(fn, std::ios::in); iFile.is_open())
+    using path = std::filesystem::path;
+    if (std::ifstream iFile(path("data") / path(fn), std::ios::in); iFile.is_open())
     {
         std::string line;
         while (std::getline(iFile, line))

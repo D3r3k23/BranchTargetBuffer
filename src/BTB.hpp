@@ -44,7 +44,7 @@ public:
 
     void process_last_instruction(uint32_t PC);
 
-    void print_to_file(const char* fn) const;
+    void print_to_file(const std::string& fn) const;
 };
 
 
