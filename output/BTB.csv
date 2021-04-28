@@ -1,5 +1,5 @@
 Index, PC, Target, State Machine, Prediction, Busy
-   0, 0042E000, 0042B4F4, 00, Taken, true
+   0, 00423000, 00425E40, 00, Taken, true
    7, 0042E01C, 0042E028, 00, Taken, true
    8, 00423020, 004230A8, 00, Taken, true
   11, 0042E02C, 0042B30C, 00, Taken, true
@@ -24,11 +24,11 @@ Index, PC, Target, State Machine, Prediction, Busy
  191, 004202FC, 0042AC30, 00, Taken, true
  193, 00420304, 00420318, 00, Taken, true
  194, 0042B308, 0042E010, 00, Taken, true
- 201, 00420324, 0042AC30, 00, Taken, true
+ 201, 0042B324, 0042DFE0, 00, Taken, true
  204, 00420330, 00420340, 00, Taken, true
  209, 0042E344, 0042E1B0, 00, Taken, true
  211, 0042034C, 0042AC30, 00, Taken, true
- 213, 00420354, 00422FAC, 00, Taken, true
+ 213, 0042B354, 0042DFE0, 00, Taken, true
  215, 0042035C, 00400204, 00, Taken, true
  217, 0042B364, 0042B370, 00, Taken, true
  229, 0042B394, 0042B388, 01, Taken, true
@@ -46,7 +46,7 @@ Index, PC, Target, State Machine, Prediction, Busy
  296, 0042B4A0, 0042B4E0, 00, Taken, true
  308, 004004D0, 0040049C, 01, Taken, true
  309, 004004D4, 00400200, 00, Taken, true
- 316, 0042B4F0, 0042DFE0, 00, Taken, true
+ 316, 004004F0, 00400200, 00, Taken, true
  323, 0040050C, 00400200, 00, Taken, true
  328, 0042B520, 0042B538, 00, Taken, true
  336, 00400540, 0040050C, 01, Taken, true
@@ -118,7 +118,7 @@ Index, PC, Target, State Machine, Prediction, Busy
  732, 00400B70, 00400200, 00, Taken, true
  738, 00400B88, 00400200, 00, Taken, true
  747, 00400BAC, 00400B84, 01, Taken, true
- 751, 0042DBBC, 0042AD18, 00, Taken, true
+ 751, 00400BBC, 00400200, 00, Taken, true
  760, 00400BE0, 00400BB8, 01, Taken, true
  763, 00400BEC, 00400200, 00, Taken, true
  776, 00400C20, 00400BEC, 01, Taken, true
@@ -134,7 +134,7 @@ Index, PC, Target, State Machine, Prediction, Busy
  811, 00400CAC, 00400200, 00, Taken, true
  814, 0042ACB8, 0042ACC8, 00, Taken, true
  821, 0042ACD4, 0042ACE8, 01, Taken, true
- 824, 0042ACE0, 0042ACFC, 00, Taken, true
+ 824, 00400CE0, 00400CAC, 01, Taken, true
  827, 00400CEC, 00400200, 00, Taken, true
  837, 0042AD14, 0042DBA0, 00, Taken, true
  839, 0042AD1C, 0042AD2C, 00, Taken, true

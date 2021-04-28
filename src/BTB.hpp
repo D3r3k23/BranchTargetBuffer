@@ -48,7 +48,7 @@ public:
 };
 
 
-// Template definitions
+// Template function definitions
 #include "BTB.cpp"
 
 
