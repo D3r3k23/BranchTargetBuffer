@@ -2,8 +2,6 @@
 #include "branch_target_buffer.hpp"
 #include "BTB.hpp"
 
-#include <string>
-
 
 const std::string trace_name = "trace_sample";
 using SM = Class_SM;
