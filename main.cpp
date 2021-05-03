@@ -2,8 +2,8 @@
 #include "BTB.hpp"
 
 
-const std::string TRACE_NAME = "Li_int";
-using SM = SM_B;
+const std::string TRACE_NAME = "trace_sample";
+using SM = Class_SM;
 
 
 int main(int, char*[])

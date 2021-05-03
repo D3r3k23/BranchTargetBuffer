@@ -1,7 +1,4 @@
 
-#ifndef BTB_HPP
-#define BTB_HPP
-
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -14,7 +11,7 @@
 
 
 const int BTB_SIZE = 1024;
-const bool PRINT_INACTIVE_ENTRIES = false;
+const bool PRINT_INACTIVE_ENTRIES = true;
 
 
 std::vector<uint32_t> load_trace_file(const std::string& fn)
@@ -96,7 +93,7 @@ private:
 
 public:
     State reset(void)
-        { return (state = S0); }
+        { return (state = S1); }
 
     bool taken(void) const
         { return (state == S0) || (state == S1); }
@@ -255,7 +252,6 @@ public:
                 stats.collisions++;
                 entry.busy = false;
             }
-
             add_entry(index, PC, nextPC);
         }
     }
@@ -302,6 +298,3 @@ public:
             std::cout << "Could not open: " << fn << '\n';
     }
 };
-
-
-#endif // BTB_HPP
