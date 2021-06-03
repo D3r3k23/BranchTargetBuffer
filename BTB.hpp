@@ -199,10 +199,9 @@ public:
     void process_trace(const std::vector<uint32_t>& trace)
     {
         auto address = trace.begin();
-        while (address != trace.end() - 1)
+        for ( ; address != trace.end() - 1; address++)
         {
             process_instruction(*address, *(address + 1));
-            address++;
         }
         process_last_instruction(*address);
 
