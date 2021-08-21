@@ -139,13 +139,13 @@ std::ostream& operator<<(std::ostream& os, const Stats& stats)
     os << "Wrong addr: " << stats.wrong_addr << '\n';
     os << '\n';
     os << std::fixed << std::setprecision(2);
-    os << "Hit rate:       " << 100.f * (static_cast<float>(stats.hits)
-                             / (static_cast<float>(stats.hits) + static_cast<float>(stats.misses)))
-                             << "%" << '\n';
-    os << "Accuracy:       " << 100.f * (static_cast<float>(stats.right) / static_cast<float>(stats.hits))
-                             << "%" << '\n';
-    os << "Incorrect addr: " << 100.f * (static_cast<float>(stats.wrong_addr) / static_cast<float>(stats.wrong))
-                             << "%" << '\n';
+    os << "Hit rate:   " << 100.f * (static_cast<float>(stats.hits)
+                         / (static_cast<float>(stats.hits) + static_cast<float>(stats.misses)))
+                         << "%" << '\n';
+    os << "Accuracy:   " << 100.f * (static_cast<float>(stats.right) / static_cast<float>(stats.hits))
+                         << "%" << '\n';
+    os << "Wrong addr: " << 100.f * (static_cast<float>(stats.wrong_addr) / static_cast<float>(stats.wrong))
+                         << "%" << '\n';
     return os;
 }
 
@@ -196,10 +196,9 @@ public:
     void process_trace(const std::vector<uint32_t>& trace)
     {
         auto address = trace.begin();
-        while (address != trace.end() - 1)
+        for ( ; address != trace.end() - 1; address++)
         {
             process_instruction(*address, *(address + 1));
-            address++;
         }
         process_last_instruction(*address);
 
