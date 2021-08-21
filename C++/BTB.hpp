@@ -1,4 +1,3 @@
-
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -9,10 +8,8 @@
 #include <filesystem>
 #include <cstdint>
 
-
 const int BTB_SIZE = 1024;
 const bool PRINT_INACTIVE_ENTRIES = true;
-
 
 std::vector<uint32_t> load_trace_file(const std::string& fn)
 {

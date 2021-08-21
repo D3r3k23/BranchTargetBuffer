@@ -1,0 +1,85 @@
+{
+    "version": "2.0.0",
+	"tasks": [
+        {
+            "label": "Build (Debug)",
+            "type": "cppbuild",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "cl.exe",
+            "args": [
+				"/std:c++latest", // C++ standard
+				"/nologo", // Suppress startup banner
+				"/EHsc", // Exception handling
+
+				"/Od", // Disable optimization
+
+				// Debug
+				"/D_DEBUG", // Debug macro
+				"/Zi", // Generate debug information in PDB
+				"/Fd${workspaceFolder}\\C++\\build\\debug\\", // PDB file location
+
+                // Output files
+				"/Fe${workspaceFolder}\\C++\\build\\debug\\BranchTargetBuffer.exe", // Executable file location
+				"/Fo${workspaceFolder}\\C++\\build\\debug\\", // Object file location
+
+				// Source file
+				"${workspaceFolder}\\C++\\main.cpp"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "detail": "compiler: cl.exe"
+        },
+        {
+            "label": "Build (Release)",
+            "type": "cppbuild",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "cl.exe",
+            "args": [
+				"/std:c++latest", // C++ standard
+				"/nologo", // Suppress startup banner
+				"/EHsc", // Exception handling
+
+				"/O2", // Optimization level 2
+
+                // Output files
+				"/Fe${workspaceFolder}\\C++\\build\\release\\BranchTargetBuffer.exe", // Executable file location
+				"/Fo${workspaceFolder}\\C++\\build\\release\\", // Object file location
+
+				// Source file
+				"${workspaceFolder}\\C++\\main.cpp"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "detail": "compiler: cl.exe"
+        },
+        {
+            "label": "Run (Debug)",
+            "type": "process",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "${workspaceFolder}\\C++\\build\\debug\\BranchTargetBuffer.exe",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run (Release)",
+            "type": "process",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "${workspaceFolder}\\C++\\build\\release\\BranchTargetBuffer.exe",
+            "problemMatcher": []
+        }
+    ]
+}

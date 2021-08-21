@@ -1,5 +1,3 @@
+/.vscode/settings.json
 
-/.vscode/
-
-/BranchTargetBuffer
-/BranchTargetBuffer.exe
+/C++/build/
