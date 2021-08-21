@@ -266,7 +266,7 @@ public:
     void print_to_file(const std::string& fn) const
     {
         using path = std::filesystem::path;
-        if (std::ofstream oFile(path("output") / path(fn), std::ios::out); oFile.is_open())
+        if (std::ofstream oFile(path("C++") / path("output") / path(fn), std::ios::out); oFile.is_open())
         {
             oFile << "Index, PC, Target, State Machine, Prediction, Busy" << '\n';
             oFile << std::uppercase << std::boolalpha;
