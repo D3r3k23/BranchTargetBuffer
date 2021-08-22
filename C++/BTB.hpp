@@ -11,6 +11,7 @@
 const int BTB_SIZE = 1024;
 const bool PRINT_INACTIVE_ENTRIES = true;
 
+
 std::vector<uint32_t> load_trace_file(const std::string& fn)
 {
     std::vector<uint32_t> trace;
@@ -32,7 +33,7 @@ std::vector<uint32_t> load_trace_file(const std::string& fn)
         std::cout << '\n';
     }
     else
-        std::cout << "Could not open file: " << fn << '\n' << '\n';
+        std::cout << "Error: Could not open file: " << fn << '\n' << '\n';
 
     return trace;
 }
@@ -58,6 +59,9 @@ private:
     State state;
 
 public:
+    Class_SM(void)
+        { reset(); }
+
     State reset(void)
         { return (state = S0); }
 
@@ -89,6 +93,9 @@ private:
     State state;
 
 public:
+    SM_B(void)
+        { reset(); }
+
     State reset(void)
         { return (state = S1); }
 
@@ -159,18 +166,14 @@ private:
         uint32_t PC = 0;
         uint32_t target = 0;
         SM prediction;
-        bool busy;
+        bool busy = false;
     };
 
     std::array<Entry, BTB_SIZE> table;
     Stats stats;
     
 public:
-    BTB(void)
-    {
-        for (auto& entry : table)
-            entry.busy = false;
-    }
+    BTB(void) = default;
 
     static unsigned int address_to_index(uint32_t address)
     {
@@ -268,7 +271,7 @@ public:
         using path = std::filesystem::path;
         if (std::ofstream oFile(path("C++") / path("output") / path(fn), std::ios::out); oFile.is_open())
         {
-            oFile << "Index, PC, Target, State Machine, Prediction, Busy" << '\n';
+            oFile << "Index,PC,Target,State Machine,Prediction,Busy" << '\n';
             oFile << std::uppercase << std::boolalpha;
 
             for (unsigned int index = 0; const auto& entry : table)
@@ -280,7 +283,7 @@ public:
                     oFile << std::hex << std::setw(8) << std::setfill('0') << entry.PC << ", ";
                     oFile << std::hex << std::setw(8) << std::setfill('0') << entry.target << ", ";
 
-                    oFile << entry.prediction.get_state() << ", ";
+                    oFile << entry.prediction.get_state() << ",";
                     oFile << (entry.prediction.taken() ? "Taken" : "NT   ") << ", ";
                     oFile << entry.busy;
 
@@ -291,6 +294,6 @@ public:
             std::cout << "BTB contents printed to: " << fn << '\n';
         }
         else
-            std::cout << "Could not open: " << fn << '\n';
+            std::cout << "Error: Could not open: " << fn << '\n';
     }
 };
