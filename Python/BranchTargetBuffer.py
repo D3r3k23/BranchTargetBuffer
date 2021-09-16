@@ -31,7 +31,7 @@ def load_trace_file(fn):
         print(f'Traces from: {fn} loaded.')
         print(f'Number of traces: {len(trace)}')
         print()
-    
+
     return trace
 
 class State(Enum):
@@ -53,13 +53,13 @@ class Class_SM:
 
     def taken(self):
         return self.state == State.S0 or self.state == State.S1
-    
+
     def go_to_next_state(self, taken):
         if self.state == State.S0: self.state = State.S0 if taken else State.S1; return self.state
         if self.state == State.S1: self.state = State.S0 if taken else State.S2; return self.state
         if self.state == State.S2: self.state = State.S1 if taken else State.S3; return self.state
         if self.state == State.S3: self.state = State.S2 if taken else State.S3; return self.state
- 
+
     @classmethod
     def __str__(cls):
         return 'Class_SM'
@@ -74,14 +74,14 @@ class SM_B:
 
     def taken(self):
         return self.state == State.S0 or self.state == State.S1
-    
+
     def go_to_next_state(self, taken):
         if self.state == State.S0: self.state = State.S0 if taken else State.S1
         if self.state == State.S1: self.state = State.S0 if taken else State.S2
         if self.state == State.S2: self.state = State.S0 if taken else State.S3
         if self.state == State.S3: self.state = State.S2 if taken else State.S3
         return self.state
-    
+
     @classmethod
     def __str__(cls):
         return 'SM_B'
@@ -130,11 +130,11 @@ class BTB:
     @staticmethod
     def address_to_index(address):
         return (address >> 2) & 0x3FF
-    
+
     def add_entry(self, index, PC, nextPC):
         if index < BTB_SIZE:
             entry = self.table[index]
-            
+
             if not entry.busy:
                 entry.PC = PC
                 entry.target = nextPC
@@ -142,10 +142,10 @@ class BTB:
                 entry.busy = True
 
     def process_trace(self, trace):
-        for i, address in enumerate(trace[:-1]):
-            self.process_instruction(trace, next(trace))
+        for i, _ in enumerate(trace[:-1]):
+            self.process_instruction(trace[i], trace[i + 1])
         else:
-            self.process_last_instruction(next(trace))
+            self.process_last_instruction(trace[i + 1])
 
         print('Stats:')
         print()
@@ -160,7 +160,7 @@ class BTB:
 
         if taken:
             self.stats.taken += 1
-        
+
         if entry.busy and entry.PC == PC: # BTB hit
             self.stats.hits += 1
 
@@ -175,7 +175,7 @@ class BTB:
 
             else: # Wrong prediction
                 self.stats.wrong += 1
-            
+
             entry.prediction.go_to_next_state(taken)
 
         elif taken: # BTB miss
