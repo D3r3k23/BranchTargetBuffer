@@ -143,10 +143,10 @@ class BTB:
                 entry.busy = True
 
     def process_trace(self, trace):
-        for i, _ in enumerate(trace[:-1]):
-            self.process_instruction(trace[i], trace[i + 1])
+        for i, address in enumerate(trace[:-1]):
+            self.process_instruction(trace, next(trace))
         else:
-            self.process_last_instruction(trace[i + 1])
+            self.process_last_instruction(next(trace))
 
         print('Stats:')
         print(self.stats)
