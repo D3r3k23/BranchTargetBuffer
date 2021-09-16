@@ -55,12 +55,11 @@ class Class_SM:
         return self.state == State.S0 or self.state == State.S1
     
     def go_to_next_state(self, taken):
-        if self.state == State.S0: self.state = State.S0 if taken else State.S1
-        if self.state == State.S1: self.state = State.S0 if taken else State.S2
-        if self.state == State.S2: self.state = State.S1 if taken else State.S3
-        if self.state == State.S3: self.state = State.S2 if taken else State.S3
-        return self.state
-    
+        if self.state == State.S0: self.state = State.S0 if taken else State.S1; return self.state
+        if self.state == State.S1: self.state = State.S0 if taken else State.S2; return self.state
+        if self.state == State.S2: self.state = State.S1 if taken else State.S3; return self.state
+        if self.state == State.S3: self.state = State.S2 if taken else State.S3; return self.state
+ 
     @classmethod
     def __str__(cls):
         return 'Class_SM'
@@ -70,7 +69,7 @@ class SM_B:
         self.reset()
 
     def reset(self):
-        self.state = State.S0
+        self.state = State.S1
         return self.state
 
     def taken(self):
@@ -149,6 +148,7 @@ class BTB:
             self.process_last_instruction(next(trace))
 
         print('Stats:')
+        print()
         print(self.stats)
         print()
 
