@@ -3,7 +3,7 @@
 
 Program written in Python and C++ to compare statistics using compare.sh
 
-### Example compare.sh results
+### Example compare.sh results (Using Li_int.txt and Class_SM)
 | Program  | Execution time (sec.) |
 |----------|-----------------------|
 | C++ (O0) | 0.179512747           |
