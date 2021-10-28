@@ -13,5 +13,7 @@ Program written in Python and C++ to compare statistics using compare.sh
 | Python   | 0.928500081           |
 
 ### LOC (code/total):
+
 C++: 260/316
+
 Python: 177/222
